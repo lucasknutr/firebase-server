@@ -19,8 +19,9 @@ const db = admin.firestore();
 // * ROUTES
 
 app.get("/", (req, res) => {
-  res.json("SUCCESS");
+  res.json("SUCCESSO");
 });
+
 // ROUTE PRINCIPAL - LISTA COMPLETA - get()
 app.get("/api/getAll", (req, res) => {
   (async () => {
@@ -75,6 +76,30 @@ app.post("/api/create", (req, res) => {
   })();
 });
 
+// MODIFICAR INFORMACOES DE FILME LISTADO - put()
+app.put("/api/update/:id", (req, res) => {
+    const { nome, ano, posterURL } = req.body;
+  
+    (async () => {
+      try {
+        const dados = db.collection("filmes").doc(req.params.id);
+        await dados.update({
+            nome: nome,
+            ano: ano,
+            posterURL: posterURL
+        });
+
+  
+        return res.status(200).send({
+          status: "sucesso",
+          msg: "Dados atualizados!",
+        });
+      } catch (error) {
+        return res.status(500).send({status: "falhou", msg: error});
+      }
+    })();
+  });
+
 
 // DELETAR FILME PRESENTE NO CATALOGO - delete()
 
@@ -97,6 +122,6 @@ app.delete("/api/delete/:id", (req, res) => {
 });
 
 
-// todo EXPORTAR A API PARA UMA FUNCAO EM NUVEM DO FIREBASE
+// todo EXPORTAR A API
 exports.app = functions.https.onRequest(app);
 
