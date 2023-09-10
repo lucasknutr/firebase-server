@@ -1,4 +1,5 @@
-// * API Firebase com os filmes listados
+// * Boilerplate para API Firebase com os filmes listados e registro de usuários
+
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const serviceAccount = require("./serviceAccountKey.json");
@@ -26,17 +27,20 @@ app.get("/", (req, res) => {
 app.get("/api/getAll", (req, res) => {
   (async () => {
     try {
+    // Selecionar colecao "filmes" da minha base de dados firebase
       const query = db.collection("filmes");
       const resposta = [];
 
       await query.get().then((data) => {
         const docs = data.docs;
-
+        
         docs.map((doc) => {
+          // const id = doc.data().id + "";
           const itemSelecionado = {
             nome: doc.data().nome,
             ano: doc.data().ano,
             posterURL: doc.data().posterURL,
+            id: doc.data().id
           };
 
           resposta.push(itemSelecionado);
@@ -59,8 +63,9 @@ app.post("/api/create", (req, res) => {
 
   (async () => {
     try {
-      await db.collection("filmes").doc(`/${Date.now()}/`).create({
-        id: Date.now(),
+      const id = Date.now();
+      await db.collection("filmes").doc(`/${id}/`).create({
+        id: id,
         nome: nome,
         ano: ano,
         posterURL: posterURL,
@@ -77,6 +82,7 @@ app.post("/api/create", (req, res) => {
 });
 
 // MODIFICAR INFORMACOES DE FILME LISTADO - put()
+
 app.put("/api/update/:id", (req, res) => {
     const { nome, ano, posterURL } = req.body;
   
@@ -104,12 +110,10 @@ app.put("/api/update/:id", (req, res) => {
 // DELETAR FILME PRESENTE NO CATALOGO - delete()
 
 app.delete("/api/delete/:id", (req, res) => {
-  const {id} = req.body;
-
   (async () => {
     try {
-      const dados = db.collection("filmes").doc(req.params.id);
-      await dados.delete();
+      const doc = db.collection("filmes").doc(req.params.id);
+      await doc.delete();
 
       return res.status(200).send({
         status: "sucesso",
@@ -121,7 +125,51 @@ app.delete("/api/delete/:id", (req, res) => {
   })();
 });
 
+// * GESTAO DE PAGINAS DE USUARIO
 
-// todo EXPORTAR A API
+// ADICIONAR INFORMACOES DE USUARIO EM COLECAO A PARTE - post()
+app.post("/api/novoUser", (req, res) => {
+  const {nome, nascimento, aboutme, email} = req.body;
+
+  (async () => {
+    try {
+      await db.collection("usuarios").doc(`/${email}/`).create({
+        id: Date.now(),
+        nome: nome,
+        nascimento: nascimento,
+        aboutme: aboutme,
+        email: email
+      });
+
+      return res.status(200).send({
+        status: "sucesso",
+        msg: "Dados salvos",
+      });
+    } catch (error) {
+      return res.status(400).json("Erro");
+    }
+  })();
+});
+
+// PEGAR DADOS DO USUARIO QUE LOGOU - get()
+app.get("/api/getUser/:email", (req, res) => {
+  (async () => {
+    try {
+    // Selecionar colecao "filmes" da minha base de dados firebase
+
+      const usuarioReq = db.collection("usuarios").doc(req.params.email);
+      let detalhesDoUsuario = await usuarioReq.get();
+      let resposta = detalhesDoUsuario.data();
+        
+      return res.status(200).json({status: 'SUCESSO', data: resposta})
+    } catch (error) {
+      console.log("ERROR");
+      return res.status(500).send({status: "falhou", data: error});
+    }
+  })();
+});
+
+
+// todo EXPORTAR A API: firebase deploy
 exports.app = functions.https.onRequest(app);
 
