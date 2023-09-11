@@ -63,6 +63,7 @@ app.post("/api/create", (req, res) => {
 
   (async () => {
     try {
+      // * Utilizando o Date.now() como identificador unico de cada filme
       const id = Date.now();
       await db.collection("filmes").doc(`/${id}/`).create({
         id: id,
@@ -112,6 +113,7 @@ app.put("/api/update/:id", (req, res) => {
 app.delete("/api/delete/:id", (req, res) => {
   (async () => {
     try {
+      // Identificar documento/filme a ser deletado a partir do parametro id
       const doc = db.collection("filmes").doc(req.params.id);
       await doc.delete();
 
@@ -126,6 +128,7 @@ app.delete("/api/delete/:id", (req, res) => {
 });
 
 // * GESTAO DE PAGINAS DE USUARIO
+// * Optei por utilizar a mesma base de dados dos filmes, mas em uma coleção diferente chamada "usuarios"
 
 // ADICIONAR INFORMACOES DE USUARIO EM COLECAO A PARTE - post()
 app.post("/api/novoUser", (req, res) => {
@@ -133,6 +136,7 @@ app.post("/api/novoUser", (req, res) => {
 
   (async () => {
     try {
+      // Usando o email como identificador unico para cada user
       await db.collection("usuarios").doc(`/${email}/`).create({
         id: Date.now(),
         nome: nome,
